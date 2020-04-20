@@ -8,16 +8,18 @@
   <title>Hola Mundo Firebase</title>
 </head>
 <body>
+    <h1 id="hola"></h1>
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-app.js"></script>
-
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase.js"></script>
     <!-- TODO: Add SDKs for Firebase products that you want to use
          https://firebase.google.com/docs/web/setup#available-libraries -->
     <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-analytics.js"></script>
 
     <script>
-      // Your web app's Firebase configuration
-      var firebaseConfig = {
+        //referencia -> un nodo de la estructura json de la base de datos
+        // Your web app's Firebase configuration
+        var firebaseConfig = {
         apiKey: "AIzaSyByGaQyUHWBUcRee15m5NnCXe1X7-kJemY",
         authDomain: "edfirebase-fe5b0.firebaseapp.com",
         databaseURL: "https://edfirebase-fe5b0.firebaseio.com",
@@ -26,10 +28,34 @@
         messagingSenderId: "962075267102",
         appId: "1:962075267102:web:a1bb2ac40637abb09b1e0f",
         measurementId: "G-MYKTW45P2L"
-      };
-      // Initialize Firebase
-      firebase.initializeApp(firebaseConfig);
-      firebase.analytics();
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        firebase.analytics();
+        const hola = document.getElementById('hola'),
+        db = firebase.database(),//accedo a toda la base de datos
+        refText = db.ref().child('text');//ref() -> acceso al nodo de datos de la estructura json child()-> le especifico a que nodo
+
+        console.log(db, refText);
+        //se actualiza en tiempo real si el valor del nodo se actualiza
+        refText.on('value', data => {//on('nombreevento', callback)
+            hola.innerText = data.val()//imprimimos valor val.() -> accedemos al valor del nodo
+        });
+        //LECTURA Y ESCRITURA
+        //estos dos metodos insertan a la base de datos
+        //set()-> este inserta tal cual le pasemos el dato
+        //push()-> este inserta pero nos da un identificador o llave
+        db.ref().child('data-push').push({
+            message: 'hola EDteam, insertando datos con el metodo push'
+        });
+        db.ref().child('data-set').set({
+            message: 'hola EDteam, insertando datos con el metodo set'
+        });
+        db.ref().child('data-set-push').push().set({
+            message: 'hola EDteam, insertando datos con el metodo set-push'
+        })
+
+
     </script>
 </body>
 </html>
