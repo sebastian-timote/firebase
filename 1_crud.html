@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,
+    initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>CRUD con Firebase</title>
+</head>
+<body>
+    <h1>CRUD CON FIREBASE</h1>
+    <h2>LISTA DE CONTACTOS</h2>
+    <h3>create / update</h3>
+    <form>
+        <input type="text" id="name" placeholder="Tu nombre" required>
+        <br>
+        <input type="email" id="email" placeholder="Tu email" required>
+        <br>
+        <input type="hidden" id="id">
+        <input type="submit" value="Salvar">
+    </form>
+    <h3>read / delete</h3>
+    <ul id="contacts"></ul>
+
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase.js"></script>
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+         https://firebase.google.com/docs/web/setup#available-libraries -->
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-analytics.js"></script>
+    <script>
+        ;//este punto u coma es para prevenir, si las librerias que me trae el
+        // script esta mal cerrado, este punto y coma las cierra
+        ((d, c, f) => {
+            // Your web app's Firebase configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyByGaQyUHWBUcRee15m5NnCXe1X7-kJemY",
+                authDomain: "edfirebase-fe5b0.firebaseapp.com",
+                databaseURL: "https://edfirebase-fe5b0.firebaseio.com",
+                projectId: "edfirebase-fe5b0",
+                storageBucket: "edfirebase-fe5b0.appspot.com",
+                messagingSenderId: "962075267102",
+                appId: "1:962075267102:web:a1bb2ac40637abb09b1e0f",
+                measurementId: "G-MYKTW45P2L"
+            };
+            // Initialize Firebase
+            f.initializeApp(firebaseConfig);
+            f.analytics();
+            const db = f.database(),
+                contactsRef = db.ref().child('contacts'),
+                contactForm = d.forms[0],//no hay necesidad de poner un id al form ya que esta variable hace referencia al form
+                contactName = d.getElementById('name'),
+                contactEmail = d.getElementById('email'),
+                contactId = d.getElementById('id'),
+                contacts = d.getElementById('contacts');
+
+            contactForm.addEventListener('submit', e => {
+                e.preventDefault();
+                //alert('procesando form');
+                let id = contactId.value || contactsRef.push().key,//si tiene un id o si no crea una llave
+                    contactData = {
+                        name: contactName.value,
+                        email: contactEmail.value
+                    };
+                updateData = {};//creacion de objeto
+                updateData[`/${id}`] = contactData;// accedo a la ruta y si tiene el id le asigna el email y el name
+                contactsRef.update(updateData);//actualiza el dato en el nodo
+                contactId.value = '';
+                contactForm.reset();
+            });
+            function contactTemplate(object){
+                return `
+                    <span class="name">${object.name}</span>
+                    <span class="email">${object.email}</span>
+                    <button id="edit">Editar</button>
+                    <button class="delete">Eliminar</button>
+                `
+            }
+            //READ
+            contactsRef.on('child_added', data => {
+                let li = d.createElement('li');// se crea elemento li
+                li.id = data.key;//obtengo llave en id
+                li.innerHTML = contactTemplate(data.val());
+                contacts.appendChild(li);//contacts es el lu
+            });
+
+            contactsRef.on('child_changed', data => {
+                let affectedNode = d.getElementById(data.key);//actualizar dato en el dom o la vista
+                affectedNode.innerHTML = contactTemplate(data.val());
+            });
+            contactsRef.on('child_removed', data => {
+                let affectedNode = d.getElementById(data.key);//actualizar dato en el dom o la vista
+                contacts.removeChild(affectedNode);
+            });
+            d.addEventListener('click', e => {//evento clic en entorno global
+                let affectedNode = e.target.parentElement;//de aqui saco el id del usuario
+                if(e.target.matches('#edit')){
+                    //c(affectedNode);return;
+                    contactName.value = affectedNode.querySelector('.name').innerText;//actualiza dato en la db firebase
+                    contactEmail.value = affectedNode.querySelector('.email').innerText;
+                    contactId.value = affectedNode.id;//le asigno el mismo id
+                }
+                if (e.target.matches('.delete')) {
+                    let id = affectedNode.id;
+                    db.ref(`contacts/${id}`).remove();
+                } 
+                       
+            })
+
+        })(document, console.log, firebase);//esto es una funcion auto invocada ()();
+    </script>
+
+
+</body>
+</html>
