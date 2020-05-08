@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,
+    initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    
+    <title>Autenticacion social en Firebase</title>
+</head>
+<body>
+    <h1>Autenticacion con email en firebase</h1>
+    <h2>Registro de Usuarios (sing in)</h2>
+    <form id="signin">
+        <input type="text" name="name" placeholder="tu nombre" required>
+        <br>
+        <input type="email" name="email" placeholder="tu email" required>
+        <br>
+        <input type="password" name="password" placeholder="tu contrasena" required>
+        <br>
+        <input type="submit" value="registrar">
+    </form>
+    <div id="signin-message"></div>
+    <h2>Inicio de sesion (log in)</h2>
+    <form id="login">
+        <input type="email" name="email" placeholder="tu email" required>
+        <br>
+        <input type="password" name="password" placeholder="tu contrasena" required>
+        <br>
+        <input type="submit" value="ingresar">
+    </form>
+    <div id="login-message"></div>
+    <p id="session-message"></p>
+
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase.js"></script>
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+         https://firebase.google.com/docs/web/setup#available-libraries -->
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-analytics.js"></script>
+    <script>
+        ;//este punto u coma es para prevenir, si las librerias que me trae el
+        // script esta mal cerrado, este punto y coma las cierra
+        ((d, c, f) => {
+            // Your web app's Firebase configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyByGaQyUHWBUcRee15m5NnCXe1X7-kJemY",
+                authDomain: "edfirebase-fe5b0.firebaseapp.com",
+                databaseURL: "https://edfirebase-fe5b0.firebaseio.com",
+                projectId: "edfirebase-fe5b0",
+                storageBucket: "edfirebase-fe5b0.appspot.com",
+                messagingSenderId: "962075267102",
+                appId: "1:962075267102:web:a1bb2ac40637abb09b1e0f",
+                measurementId: "G-MYKTW45P2L"
+            };
+            // Initialize Firebase
+            f.initializeApp(firebaseConfig);
+            f.analytics();
+            const auth = f.auth(),
+                  user = auth.currentUser,
+                  formSignin = d.getElementById('signin'),
+                  formLogin = d.getElementById('login'),
+                  authMessage = d.getElementById('session-message'),
+                  loginMessage = d.getElementById('login-message')
+                  
+
+            auth.onAuthStateChanged( user => {
+                c(user)
+                if (user) {
+                    c('usuario autenticado')
+                    authMessage.innerHTML = `<p>si ves este contenido es por que estas<b> logueado</b>
+                    <button id="logout">salir</button>`
+                }else{
+                    c('usuario  No autenticado')
+                    authMessage.innerHTML = `<p>El contenido de esta Seccion es para 
+                                             <b> usuarios registrados</b>`
+                }
+            })
+            formSignin.addEventListener('submit', e => {
+                e.preventDefault();
+                alert('hola');
+                let messageSignin = d.getElementById('signin-message')
+
+                auth.createUserWithEmailAndPassword(
+                    e.target.email.value,
+                    e.target.password.value
+                )
+                    .then(res => {
+                        c(res);
+                        c(res.user);
+                        messageSignin.innerHTML = `<p class="ok">Usuario creado con el correo <b>
+                                                ${e.target.email.value}</b></p>` 
+                        e.target.reset();
+                    })
+                    .catch(err =>{
+                        c(err);
+                    messageSignin.innerHTML = `<p class="error">Error <b>${err.message}
+                                                </b></p>`
+                    e.target.name.focus();
+                    })
+            })
+            formLogin.addEventListener('submit', e => {
+                e.preventDefault();
+                
+            })
+            d.addEventListener('click', e => {
+                if(e.target.matches('#logout')){
+                    auth.signOut().then(() => loginMessage.innerHTML = '<p>sesion terminada</p>')
+                }
+            })
+        })(document, console.log, firebase);//esto es una funcion auto invocada ()();
+    </script>       
+
+
+</body>
+</html>

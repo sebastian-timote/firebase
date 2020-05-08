@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,
+    initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    
+    <title>Autenticacion social en Firebase</title>
+</head>
+<body>
+    <h1>Autenticacion social en firebase</h1>
+    <button id="login">
+        <i class="fas fa-sign-in-alt"></i>
+        entra con
+        <i class="fab fa-github"></i>
+    </button>
+    <div id="login-message"></div>
+    <p id="session-message"></p>
+
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase.js"></script>
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+         https://firebase.google.com/docs/web/setup#available-libraries -->
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-analytics.js"></script>
+    <script>
+        ;//este punto u coma es para prevenir, si las librerias que me trae el
+        // script esta mal cerrado, este punto y coma las cierra
+        ((d, c, f) => {
+            // Your web app's Firebase configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyByGaQyUHWBUcRee15m5NnCXe1X7-kJemY",
+                authDomain: "edfirebase-fe5b0.firebaseapp.com",
+                databaseURL: "https://edfirebase-fe5b0.firebaseio.com",
+                projectId: "edfirebase-fe5b0",
+                storageBucket: "edfirebase-fe5b0.appspot.com",
+                messagingSenderId: "962075267102",
+                appId: "1:962075267102:web:a1bb2ac40637abb09b1e0f",
+                measurementId: "G-MYKTW45P2L"
+            };
+            // Initialize Firebase
+            f.initializeApp(firebaseConfig);
+            f.analytics();
+
+            const provider = new f.auth.GithubAuthProvider(),
+                  user = f.auth().currentUser,//toma los datos del usuario de la seccion
+                  loginMessage = d.getElementById('login-message'),
+                  authMessage = d.getElementById('session-message')
+
+            f.auth().onAuthStateChanged(user => {
+                c(user)
+                if (user) {
+                    c('usuario autenticado')
+                    authMessage.innerHTML = `<p>si ves este contenido es por que estas<b> logueado</b>
+                    <button id="logout">salir</button>`
+                }else{
+                    c('usuario  No autenticado')
+                    authMessage.innerHTML = `<p>El contenido de esta Seccion es para 
+                                             <b> usuarios registrados</b>`
+                }
+            })//funcion que  valida si la autenticacion se ha hecho
+            d.addEventListener('click', e => {
+                if(e.target.id === 'login'){
+
+                    f.auth().signInWithPopup(provider)//nos sale la ventana emergente y nos pide el provider
+                    .then(result => {
+                        loginMessage.innerHTML = `<p class="ok"><b>${result.user.email}</b>
+                        ha iniciado sesion con github.</p><img src="${result.user.photoURL}">`
+                    })
+                    .catch(err => {
+                        loginMessage.innerHTML = `<p class="error">Error de autenticacion con github
+                         ${err.code}: <b>${err.message} </b>.`
+                         c(err)
+                    })
+                }
+                if(e.target.matches('#logout')){
+                    f.auth().signOut().then(() => loginMessage.innerHTML = '<p>sesion terminada</p>')
+                }
+            })
+        })(document, console.log, firebase);//esto es una funcion auto invocada ()();
+    </script>       
+
+
+</body>
+</html>
