@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,
+    initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>storage(almacenamiento) en Firebase</title>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #progress-bar {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 50%;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>Almacenamiento Firebase</h1>
+    <progress value="0" max="100" id="progress-bar"></progress>
+    <form id="upload">
+        <input type="file" id="uploader" multiple>
+    </form>
+    <span id="progress-advance"></span>
+    <div id="output"></div>
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase.js"></script>
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+         https://firebase.google.com/docs/web/setup#available-libraries -->
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-analytics.js"></script>
+    <script>
+        ;//este punto u coma es para prevenir, si las librerias que me trae el
+        // script esta mal cerrado, este punto y coma las cierra
+        ((d, c, f) => {
+            // Your web app's Firebase configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyByGaQyUHWBUcRee15m5NnCXe1X7-kJemY",
+                authDomain: "edfirebase-fe5b0.firebaseapp.com",
+                databaseURL: "https://edfirebase-fe5b0.firebaseio.com",
+                projectId: "edfirebase-fe5b0",
+                storageBucket: "edfirebase-fe5b0.appspot.com",
+                messagingSenderId: "962075267102",
+                appId: "1:962075267102:web:a1bb2ac40637abb09b1e0f",
+                measurementId: "G-MYKTW45P2L"
+            };
+            // Initialize Firebase
+            f.initializeApp(firebaseConfig);
+            f.analytics();
+
+            const storage = f.storage(),
+                  bucket = storage.ref(),//separamos referencia en storage
+                  imgRef = bucket.child('img'),//creamos una carpeta hija
+                  form = d.getElementById('upload'),
+                  uploader = d.getElementById('uploader'),
+                  progressBar = d.getElementById('progress-bar'),
+                  output = d.getElementById('output'),
+                  progressAdvance = d.getElementById('progress-advance')
+
+            c(bucket)
+
+            function saveFileInDB(url) {
+                let fileRef = f.database().ref().child('files')
+                fileRef.push({
+                    url
+                })
+            }
+            output.innerHTML = ''
+            uploader.addEventListener('change', e => {
+                c(e.target.files)
+                Array.from(e.target.files).forEach(file => {
+                    c('subiendo archivo')
+                    c(file)
+                    let uploadTask = imgRef.child(file.name).put(file)//put()es el metodo que sube el archivo al storage de firebase
+                    uploadTask.on('state_changed', data => {
+                        c(data)
+                        let progress = Math.floor((data.bytesTransferred / data.totalBytes) * 100)//barra de progreso
+                        progressBar.value = progress;
+                        progressAdvance.innerHTML = `${progress} %`;
+                        c(progress)
+                    }, err => {
+                        c(err)
+                        c(err.code, err.message)
+                        progressAdvance.innerHTML = `<p>${err.code} - ${err.message}</p>`
+                    }, () => {
+                        let fileRef = imgRef.child(file.name);
+                        fileRef.getDownloadURL()//me permite obtener la url de la imagen
+                            .then( url => {
+                                c(url)
+                                if ( file.type.match('image.*')) {
+                                    output.innerHTML += `<img src='${url}'>`
+                                }else {
+                                    output.innerHTML += `<p>tu archivo se ha subido<a href='${url}' target='_blank'>${file.name}</a></p>`
+                                }
+                                saveFileInDB(url);
+                            })
+                    })
+                })
+                form.reset();
+            })
+        })(document, console.log, firebase);//esto es una funcion auto invocada ()();
+    </script>       
+
+
+</body>
+</html>

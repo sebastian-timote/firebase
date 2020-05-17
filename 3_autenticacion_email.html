@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width,
     initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
     
     <title>Autenticacion social en Firebase</title>
 </head>
@@ -60,10 +59,16 @@
                   user = auth.currentUser,
                   formSignin = d.getElementById('signin'),
                   formLogin = d.getElementById('login'),
-                  authMessage = d.getElementById('session-message'),
-                  loginMessage = d.getElementById('login-message')
+                  authMessage = d.getElementById('session-message');
                   
+            function createUserInDB(uid,name,email) {
+                let usersRef = f.database().ref().child('users')
+                usersRef.child(uid).set({//en la ref de la DB create un hijo con el uid
+                    name,
+                    email
+                })
 
+            }
             auth.onAuthStateChanged( user => {
                 c(user)
                 if (user) {
@@ -76,11 +81,18 @@
                                              <b> usuarios registrados</b>`
                 }
             })
+            //registro
             formSignin.addEventListener('submit', e => {
                 e.preventDefault();
-                alert('hola');
+                alert('signin');
                 let messageSignin = d.getElementById('signin-message')
-
+                
+                //para quitar el elemento de sesion terminada lineas 120-123
+                let sessionClose = document.getElementById('sessionClose')
+                if (sessionClose) {
+                    document.getElementById('sessionClose').remove();
+                }
+                //crea un user en auth de google 
                 auth.createUserWithEmailAndPassword(
                     e.target.email.value,
                     e.target.password.value
@@ -88,6 +100,12 @@
                     .then(res => {
                         c(res);
                         c(res.user);
+                        //insertar el usuario en la DB
+                        createUserInDB(
+                            res.user.uid,
+                            e.target.name.value,
+                            e.target.email.value
+                        )
                         messageSignin.innerHTML = `<p class="ok">Usuario creado con el correo <b>
                                                 ${e.target.email.value}</b></p>` 
                         e.target.reset();
@@ -99,13 +117,40 @@
                     e.target.name.focus();
                     })
             })
+            //logueo
             formLogin.addEventListener('submit', e => {
                 e.preventDefault();
-                
+                let loginMessage = d.getElementById('login-message');
+                //para quitar el elemento de sesion terminada lineas 120-123
+                let sessionClose = document.getElementById('sessionClose')
+                if (sessionClose) {
+                    document.getElementById('sessionClose').remove();
+                }
+                auth.signInWithEmailAndPassword(
+                    e.target.email.value,
+                    e.target.password.value
+                ).then(user => {
+                    loginMessage.innerHTML = `<p class="ok">Usuario logueado con el correo <b>${e.target.email.value}</b>.</p>`
+                    e.target.reset();
+                })
+                 .catch(err => {
+                    c(err);
+                    loginMessage.innerHTML = `<p class="error">Error <b>${err.message}
+                                                </b></p>`
+                    e.target.password.focus();
+
+                 })
+
             })
+
             d.addEventListener('click', e => {
                 if(e.target.matches('#logout')){
-                    auth.signOut().then(() => loginMessage.innerHTML = '<p>sesion terminada</p>')
+                    auth.signOut().then(() => {
+                        const sessionClose = document.createElement('p')
+                        sessionClose.textContent = 'sesion terminada';
+                        sessionClose.id = 'sessionClose';
+                        document.body.appendChild(sessionClose);
+                    })
                 }
             })
         })(document, console.log, firebase);//esto es una funcion auto invocada ()();
